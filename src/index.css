@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-zft-primary: #e5e7eb;
+  --color-zft-secondary: #9ca3af;
+  --color-zft-dark: #0a0a0a;
+  --color-zft-darker: #030303;
+  --color-zft-light: #ffffff;
+  --font-sans: "Inter", "Outfit", sans-serif;
+}
+
+body {
+  @apply bg-zft-dark text-zft-light font-sans antialiased selection:bg-white selection:text-black;
+}
+
+/* Hexagon shape utilities */
+.clip-hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.clip-hexagon-h {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* Luxury Monochrome Glassmorphism */
+.glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+}
+
+.glass-dark {
+  @apply bg-black/60 backdrop-blur-md border border-white/5 shadow-2xl;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #030303; 
+}
+::-webkit-scrollbar-thumb {
+  background: #333; 
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #666; 
+}
+
+/* Hexagon background pattern */
+.bg-hex-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='103.92304845413264' viewBox='0 0 60 103.92304845413264' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpolygon points='30 103.92304845413264 0 86.60254037844386 0 51.96152422706632 30 34.64101615137754 60 51.96152422706632 60 86.60254037844386'/%3E%3Cpolygon points='30 69.28203230275508 0 51.96152422706632 0 17.320508075688775 30 0 60 17.320508075688775 60 51.96152422706632'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
