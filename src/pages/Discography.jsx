@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlayCircle, X, ExternalLink, Hexagon } from 'lucide-react';
+import { PlayCircle, X, ExternalLink, Hexagon, ChevronDown, Filter, RotateCcw } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 
 export default function Discography() {
@@ -120,43 +120,64 @@ export default function Discography() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-16 p-6 bg-black border border-white/10">
-          <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-            <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mr-2 shrink-0">
-              Type
-            </div>
-            {types.map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`shrink-0 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 border ${
-                  filterType === type
-                    ? 'bg-white text-black border-white'
-                    : 'bg-transparent text-slate-400 hover:text-white border-white/20 hover:border-white/50'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-16 p-4 sm:p-6 bg-black border border-white/10">
+          <div className="flex items-center gap-3">
+            <Filter className="w-4 h-4 text-slate-400" />
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-white">
+              Filter Catalog
+            </span>
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest pl-2 border-l border-white/10">
+              {filteredReleases.length} {filteredReleases.length === 1 ? 'Release' : 'Releases'}
+            </span>
           </div>
 
-          <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-             <div className="text-slate-500 text-xs font-bold uppercase tracking-widest mr-2 shrink-0">
-              Artist
-            </div>
-            {artistNames.map((name) => (
-              <button
-                key={name}
-                onClick={() => setFilterArtist(name)}
-                className={`shrink-0 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 border ${
-                  filterArtist === name
-                    ? 'bg-white text-black border-white'
-                    : 'bg-transparent text-slate-400 hover:text-white border-white/20 hover:border-white/50'
-                }`}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4">
+            {/* Type Dropdown */}
+            <div className="relative flex-1 sm:w-48">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full appearance-none bg-black border border-white/20 hover:border-white/50 focus:border-white px-4 py-2.5 pr-9 text-xs font-bold uppercase tracking-widest text-white transition-colors cursor-pointer rounded-none focus:outline-none"
               >
-                {name}
+                {types.map((type) => (
+                  <option key={type} value={type} className="bg-neutral-950 text-white">
+                    {type === 'All' ? 'ALL TYPES' : type.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {/* Artist Dropdown */}
+            <div className="relative flex-1 sm:w-52">
+              <select
+                value={filterArtist}
+                onChange={(e) => setFilterArtist(e.target.value)}
+                className="w-full appearance-none bg-black border border-white/20 hover:border-white/50 focus:border-white px-4 py-2.5 pr-9 text-xs font-bold uppercase tracking-widest text-white transition-colors cursor-pointer rounded-none focus:outline-none"
+              >
+                {artistNames.map((name) => (
+                  <option key={name} value={name} className="bg-neutral-950 text-white">
+                    {name === 'All Artists' ? 'ALL ARTISTS' : name.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {/* Reset Button (shown when any filter is active) */}
+            {(filterType !== 'All' || filterArtist !== 'All Artists') && (
+              <button
+                onClick={() => {
+                  setFilterType('All');
+                  setFilterArtist('All Artists');
+                }}
+                className="px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-black hover:bg-white border border-white/20 hover:border-white transition-all flex items-center gap-1.5 shrink-0"
+                title="Reset Filters"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
               </button>
-            ))}
+            )}
           </div>
         </div>
 
