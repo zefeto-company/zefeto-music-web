@@ -379,7 +379,7 @@ export default function AdminDashboard() {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = 'https://images.unsplash.com/photo-1616091216791-a5360b5ce757?auto=format&fit=crop&q=80';
                             }}
-                            className="w-full h-full object-cover grayscale" 
+                            className="w-full h-full object-cover" 
                           />
                         </div>
                         <div>
@@ -457,7 +457,7 @@ export default function AdminDashboard() {
                                         e.currentTarget.onerror = null;
                                         e.currentTarget.src = 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80';
                                       }}
-                                      className="w-full h-full object-cover grayscale" 
+                                      className="w-full h-full object-cover" 
                                     />
                                   </div>
                                   <div className="min-w-0">
@@ -527,7 +527,7 @@ export default function AdminDashboard() {
                           e.currentTarget.onerror = null;
                           e.currentTarget.src = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80';
                         }}
-                        className="w-full h-full object-cover grayscale" 
+                        className="w-full h-full object-cover" 
                       />
                     </div>
                     <div>

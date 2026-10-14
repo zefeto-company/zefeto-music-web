@@ -170,7 +170,7 @@ export default function Home() {
                         e.currentTarget.onerror = null;
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1616091216791-a5360b5ce757?auto=format&fit=crop&q=80&w=400&h=400';
                       }}
-                      className="w-full h-full object-cover group-hover:scale-110 grayscale group-hover:grayscale-0 transition-all duration-700"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700"
                     />
                   </div>
                 </div>

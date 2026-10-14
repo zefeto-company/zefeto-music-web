@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Hexagon, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
@@ -27,19 +27,12 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-24">
           
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative flex items-center justify-center w-10 h-10">
-              <Hexagon className="absolute w-10 h-10 text-slate-300 group-hover:text-white transition-colors duration-300 stroke-[1.5]" />
-              <div className="w-4 h-4 bg-white clip-hexagon group-hover:scale-110 transition-transform duration-300" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-[0.2em] text-white uppercase leading-none">
-                ZEFETO
-              </span>
-              <span className="text-[10px] font-medium tracking-[0.4em] text-slate-500 uppercase mt-1">
-                Music
-              </span>
-            </div>
+          <Link to="/" className="flex items-center group py-1">
+            <img 
+              src="/zefeto-logo-white.png" 
+              alt="ZEFETO MUSIC" 
+              className="h-9 md:h-10 w-auto object-contain transition-opacity duration-300 group-hover:opacity-80" 
+            />
           </Link>
 
           {/* Desktop Nav */}

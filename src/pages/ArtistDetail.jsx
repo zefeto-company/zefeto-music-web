@@ -168,7 +168,7 @@ export default function ArtistDetail() {
             e.currentTarget.onerror = null;
             e.currentTarget.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200&h=400';
           }}
-          className="w-full h-full object-cover grayscale"
+          className="w-full h-full object-cover"
         />
         <button 
           onClick={() => navigate('/artists')}
@@ -195,7 +195,7 @@ export default function ArtistDetail() {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = 'https://images.unsplash.com/photo-1616091216791-a5360b5ce757?auto=format&fit=crop&q=80&w=400&h=400';
                   }}
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" 
+                  className="w-full h-full object-cover transition-all duration-700 hover:scale-105" 
                 />
               </div>
             </div>
@@ -265,7 +265,7 @@ export default function ArtistDetail() {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=400&h=400';
                             }}
-                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-transform duration-500 group-hover:scale-110" 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                           />
                         </div>
                       </div>
@@ -296,7 +296,7 @@ export default function ArtistDetail() {
                   transition={{ delay: idx * 0.1 }}
                   className="aspect-[3/4] overflow-hidden bg-slate-900 border border-white/10 relative group"
                 >
-                  <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover grayscale group-hover:grayscale-0 hover:scale-105 transition-all duration-700" />
+                  <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover hover:scale-105 transition-all duration-700" />
                   <div className="absolute inset-0 border-[1px] border-white/0 group-hover:border-white/20 transition-all duration-500 m-4 pointer-events-none" />
                 </motion.div>
               ))}
@@ -328,7 +328,7 @@ export default function ArtistDetail() {
                         e.currentTarget.onerror = null;
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80&w=400&h=400';
                       }}
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500" 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500" 
                     />
                   </div>
                   <div className="flex flex-col justify-center">

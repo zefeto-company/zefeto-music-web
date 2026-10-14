@@ -6,6 +6,7 @@ import { supabase } from '../utils/supabaseClient';
 export default function Discography() {
   const [filterType, setFilterType] = useState('All');
   const [filterArtist, setFilterArtist] = useState('All Artists');
+  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest'
   const [selectedRelease, setSelectedRelease] = useState(null);
 
   const [releases, setReleases] = useState([]);
@@ -79,14 +80,20 @@ export default function Discography() {
 
   const filteredReleases = useMemo(() => {
     if (loading) return [];
-    return releases.filter(release => {
+    const filtered = releases.filter(release => {
       const matchType = filterType === 'All' || release.type === filterType;
       const matchArtist = filterArtist === 'All Artists' || (
         release.artists && release.artists.some(a => a.name?.toLowerCase().includes(filterArtist.toLowerCase()))
       );
       return matchType && matchArtist;
     });
-  }, [filterType, filterArtist, releases, loading]);
+
+    return [...filtered].sort((a, b) => {
+      const dateA = new Date(a.releaseDate || a.release_date || 0).getTime();
+      const dateB = new Date(b.releaseDate || b.release_date || 0).getTime();
+      return sortBy === 'oldest' ? dateA - dateB : dateB - dateA;
+    });
+  }, [filterType, filterArtist, sortBy, releases, loading]);
 
   if (loading) {
     return (
@@ -134,8 +141,21 @@ export default function Discography() {
           </div>
 
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4">
-            {/* Type Dropdown */}
+            {/* Sort Dropdown */}
             <div className="relative flex-1 sm:w-48">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full appearance-none bg-black border border-white/20 hover:border-white/50 focus:border-white px-4 py-2.5 pr-9 text-xs font-bold uppercase tracking-widest text-white transition-colors cursor-pointer rounded-none focus:outline-none"
+              >
+                <option value="newest" className="bg-neutral-950 text-white">TERBARU (NEWEST)</option>
+                <option value="oldest" className="bg-neutral-950 text-white">TERLAMA (OLDEST)</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {/* Type Dropdown */}
+            <div className="relative flex-1 sm:w-44">
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
@@ -151,7 +171,7 @@ export default function Discography() {
             </div>
 
             {/* Artist Dropdown */}
-            <div className="relative flex-1 sm:w-52">
+            <div className="relative flex-1 sm:w-48">
               <select
                 value={filterArtist}
                 onChange={(e) => setFilterArtist(e.target.value)}
@@ -166,12 +186,13 @@ export default function Discography() {
               <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            {/* Reset Button (shown when any filter is active) */}
-            {(filterType !== 'All' || filterArtist !== 'All Artists') && (
+            {/* Reset Button (shown when any filter or sort is active) */}
+            {(filterType !== 'All' || filterArtist !== 'All Artists' || sortBy !== 'newest') && (
               <button
                 onClick={() => {
                   setFilterType('All');
                   setFilterArtist('All Artists');
+                  setSortBy('newest');
                 }}
                 className="px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-black hover:bg-white border border-white/20 hover:border-white transition-all flex items-center gap-1.5 shrink-0"
                 title="Reset Filters"
@@ -205,7 +226,7 @@ export default function Discography() {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80&w=400&h=400';
                     }}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center backdrop-blur-sm gap-3">
                     <PlayCircle className="w-12 h-12 text-white" />
@@ -268,7 +289,7 @@ export default function Discography() {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80&w=400&h=400';
                     }}
-                    className="w-full h-full object-cover grayscale" 
+                    className="w-full h-full object-cover" 
                   />
                 </div>
                 

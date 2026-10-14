@@ -19,6 +19,7 @@ export default function Artists() {
         
         const normalized = (data || []).map(a => ({
           ...a,
+          debutDate: a.debut_date || a.debutDate || '2025-01-01',
           avatar: a.avatar_url || a.avatar || 'https://images.unsplash.com/photo-1616091216791-a5360b5ce757?auto=format&fit=crop&q=80&w=400&h=400',
           zepetoId: a.zepeto_id || a.zepetoId || '@zefeto_artist'
         }));
@@ -33,11 +34,17 @@ export default function Artists() {
     fetchArtists();
   }, []);
 
-  const filteredArtists = artists.filter(artist => {
-    if (filter === 'Soloists') return artist.type === 'solo' || artist.category?.toLowerCase().includes('solo');
-    if (filter === 'Groups/Units') return artist.type !== 'solo' || artist.category?.toLowerCase().includes('group') || artist.category?.toLowerCase().includes('trio');
-    return true;
-  });
+  const filteredArtists = artists
+    .filter(artist => {
+      if (filter === 'Soloists') return artist.type === 'solo' || artist.category?.toLowerCase().includes('solo');
+      if (filter === 'Groups/Units') return artist.type !== 'solo' || artist.category?.toLowerCase().includes('group') || artist.category?.toLowerCase().includes('trio');
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.debutDate || 0).getTime();
+      const dateB = new Date(b.debutDate || 0).getTime();
+      return dateB - dateA;
+    });
 
   if (loading) {
     return (
@@ -118,9 +125,9 @@ export default function Artists() {
                         e.currentTarget.onerror = null;
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1616091216791-a5360b5ce757?auto=format&fit=crop&q=80&w=400&h=400';
                       }}
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-500" />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500" />
                   </div>
                 </div>
                 

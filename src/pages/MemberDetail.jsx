@@ -130,7 +130,7 @@ export default function MemberDetail() {
                      e.currentTarget.onerror = null;
                      e.currentTarget.src = 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=400&h=400';
                    }}
-                   className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" 
+                   className="w-full h-full object-cover transition-all duration-700 hover:scale-105" 
                  />
                </div>
             </div>

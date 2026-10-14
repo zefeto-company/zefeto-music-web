@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Hexagon } from 'lucide-react';
+
 
 const InstagramIcon = ({ className }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter">
@@ -32,19 +32,12 @@ export default function Footer() {
           
           {/* Column 1: Brand Info */}
           <div className="space-y-6">
-            <Link to="/" className="flex items-center gap-3 group w-fit">
-              <div className="relative flex items-center justify-center w-8 h-8">
-                <Hexagon className="absolute w-8 h-8 text-slate-500 group-hover:text-white transition-colors duration-300 stroke-[1.5]" />
-                <div className="w-3 h-3 bg-white clip-hexagon group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold tracking-[0.2em] text-white uppercase leading-none">
-                  ZEFETO
-                </span>
-                <span className="text-[9px] font-medium tracking-[0.4em] text-slate-500 uppercase mt-1">
-                  Music
-                </span>
-              </div>
+            <Link to="/" className="flex items-center group w-fit py-1">
+              <img 
+                src="/zefeto-logo-white.png" 
+                alt="ZEFETO MUSIC" 
+                className="h-8 md:h-9 w-auto object-contain transition-opacity duration-300 group-hover:opacity-80" 
+              />
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed max-w-xs font-medium">
               The vanguard of virtual artistry. ZEFETO MUSIC shapes the future of digital entertainment and global idol culture.
