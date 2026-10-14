@@ -90,7 +90,10 @@ export default function ArtistDetail() {
               .map(r => ({
                 ...r,
                 cover: r.cover_url || r.cover || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80&w=400&h=400',
-                releaseDate: r.release_date || r.releaseDate || '2026-01-01'
+                releaseDate: r.release_date || r.releaseDate || '2026-01-01',
+                artists: (r.links?.artists && Array.isArray(r.links.artists) && r.links.artists.length > 0)
+                  ? r.links.artists
+                  : [{ name: normalizedArtist.name }]
               }));
 
             setArtistReleases(releasesList);
@@ -329,8 +332,13 @@ export default function ArtistDetail() {
                     />
                   </div>
                   <div className="flex flex-col justify-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{release.type}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{release.type}</span>
                     <h4 className="text-lg font-bold text-white mb-1 uppercase tracking-wider">{release.title}</h4>
+                    {release.artists && release.artists.length > 0 && (
+                      <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider mb-1">
+                        {release.artists.map(a => a.name).join(' X ')}
+                      </p>
+                    )}
                     <span className="text-slate-600 text-xs font-mono">{new Date(release.releaseDate).getFullYear()}</span>
                   </div>
                 </motion.div>

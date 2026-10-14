@@ -35,7 +35,9 @@ export default function Discography() {
             ...r,
             cover: r.cover_url || r.cover || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80&w=400&h=400',
             releaseDate: r.release_date || r.releaseDate || '2026-01-01',
-            artists: joinedArtists.length > 0 ? joinedArtists : (r.artists || [{ name: 'ZEFETO' }]),
+            artists: (r.links?.artists && Array.isArray(r.links.artists) && r.links.artists.length > 0)
+              ? r.links.artists
+              : (joinedArtists.length > 0 ? joinedArtists : (r.artists || [{ name: 'ZEFETO' }])),
             tracklist: (r.links?.tracklist && Array.isArray(r.links.tracklist) && r.links.tracklist.length > 0)
               ? r.links.tracklist
               : (r.tracklist && Array.isArray(r.tracklist) && r.tracklist.length > 0)

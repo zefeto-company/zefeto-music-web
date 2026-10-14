@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { X, Hexagon, Save, AlertCircle, Music, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { X, Hexagon, Save, AlertCircle, Music, Plus, Trash2, ArrowUp, ArrowDown, Users, Sparkles } from 'lucide-react';
 import ImageUploader from './ImageUploader';
 
-export default function ReleaseModal({ isOpen, onClose, onSave, initialData, artists = [] }) {
+export default function ReleaseModal({ isOpen, onClose, onSave, initialData, artists = [], members = [] }) {
   const [formData, setFormData] = useState({
     id: '',
     title: '',
@@ -10,10 +10,13 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
     release_date: new Date().toISOString().split('T')[0],
     cover_url: '',
     description: '',
-    artist_id: '',
     spotify: 'https://spotify.com/',
     youtube: 'https://youtube.com/'
   });
+  const [selectedArtists, setSelectedArtists] = useState([]);
+  const [artistSelectValue, setArtistSelectValue] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customName, setCustomName] = useState('');
   const [tracklist, setTracklist] = useState([
     { title: '', duration: '3:20' }
   ]);
@@ -22,10 +25,47 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
 
   const isEditing = Boolean(initialData && initialData.id);
 
+  // Derive all individual member options grouped by unit
+  const allMemberOptions = useMemo(() => {
+    const list = [];
+    const seen = new Set();
+
+    // 1. From artists with nested members
+    artists.forEach(a => {
+      (a.members || []).forEach(m => {
+        if (!seen.has(m.id)) {
+          seen.add(m.id);
+          list.push({
+            id: m.id,
+            name: m.name,
+            groupId: a.id,
+            groupName: a.name,
+            role: m.role || 'Member'
+          });
+        }
+      });
+    });
+
+    // 2. From extra members list if supplied
+    members.forEach(m => {
+      if (!seen.has(m.id)) {
+        seen.add(m.id);
+        const parentArtist = artists.find(a => a.id === m.artist_id);
+        list.push({
+          id: m.id,
+          name: m.name,
+          groupId: m.artist_id || parentArtist?.id || '',
+          groupName: m.artist_name || parentArtist?.name || 'Unit',
+          role: m.role || 'Member'
+        });
+      }
+    });
+
+    return list;
+  }, [artists, members]);
+
   useEffect(() => {
     if (initialData) {
-      // Find attached artist
-      const currentArtistId = initialData.release_artists?.[0]?.artist_id || initialData.artists?.[0]?.id || (artists[0]?.id || '');
       setFormData({
         id: initialData.id || '',
         title: initialData.title || '',
@@ -33,10 +73,40 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
         release_date: initialData.release_date || initialData.releaseDate || new Date().toISOString().split('T')[0],
         cover_url: initialData.cover_url || initialData.cover || '',
         description: initialData.description || '',
-        artist_id: currentArtistId,
         spotify: initialData.links?.spotify || 'https://spotify.com/',
         youtube: initialData.links?.youtube || 'https://youtube.com/'
       });
+
+      // Extract existing artists / collaborators
+      let currentArtists = [];
+      if (initialData.links?.artists && Array.isArray(initialData.links.artists) && initialData.links.artists.length > 0) {
+        currentArtists = initialData.links.artists;
+      } else if (initialData.artists && Array.isArray(initialData.artists) && initialData.artists.length > 0) {
+        currentArtists = initialData.artists.map(a => ({
+          id: a.id || a.name,
+          name: a.name,
+          type: a.type || 'artist',
+          parent_artist_id: a.id || a.parent_artist_id
+        }));
+      } else if (initialData.release_artists && Array.isArray(initialData.release_artists) && initialData.release_artists.length > 0) {
+        currentArtists = initialData.release_artists
+          .map(ra => ra.artists)
+          .filter(Boolean)
+          .map(a => ({
+            id: a.id,
+            name: a.name,
+            type: a.type || 'artist',
+            parent_artist_id: a.id
+          }));
+      } else if (initialData.artist_id) {
+        const found = artists.find(a => a.id === initialData.artist_id);
+        currentArtists = [
+          found 
+            ? { id: found.id, name: found.name, type: 'artist', parent_artist_id: found.id } 
+            : { id: initialData.artist_id, name: initialData.artist_id, type: 'artist', parent_artist_id: initialData.artist_id }
+        ];
+      }
+      setSelectedArtists(currentArtists);
 
       const existingTracks = initialData.tracklist || initialData.links?.tracklist || [];
       if (Array.isArray(existingTracks) && existingTracks.length > 0) {
@@ -56,14 +126,83 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
         release_date: new Date().toISOString().split('T')[0],
         cover_url: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80',
         description: '',
-        artist_id: artists[0]?.id || '',
         spotify: 'https://spotify.com/',
         youtube: 'https://youtube.com/'
       });
+      // Default to first artist if available
+      const defaultArtist = artists[0] 
+        ? [{ id: artists[0].id, name: artists[0].name, type: 'artist', parent_artist_id: artists[0].id }] 
+        : [];
+      setSelectedArtists(defaultArtist);
       setTracklist([{ title: '', duration: '3:20' }]);
     }
+    setArtistSelectValue('');
+    setShowCustomInput(false);
+    setCustomName('');
     setError('');
   }, [initialData, isOpen, artists]);
+
+  const handleAddArtistFromSelect = (value) => {
+    if (!value) return;
+
+    if (value.startsWith('artist:')) {
+      const aId = value.replace('artist:', '');
+      const a = artists.find(item => item.id === aId);
+      if (a) {
+        const exists = selectedArtists.some(item => item.id === a.id);
+        if (!exists) {
+          setSelectedArtists(prev => [
+            ...prev,
+            { id: a.id, name: a.name, type: 'artist', parent_artist_id: a.id }
+          ]);
+        }
+      }
+    } else if (value.startsWith('member:')) {
+      const mId = value.replace('member:', '');
+      const m = allMemberOptions.find(item => item.id === mId);
+      if (m) {
+        const itemKey = `member-${m.id}`;
+        const formattedName = `${m.name} of ${m.groupName}`;
+        const exists = selectedArtists.some(item => item.id === itemKey || item.name.toLowerCase() === formattedName.toLowerCase());
+        if (!exists) {
+          setSelectedArtists(prev => [
+            ...prev,
+            {
+              id: itemKey,
+              name: formattedName,
+              type: 'member',
+              member_id: m.id,
+              parent_artist_id: m.groupId
+            }
+          ]);
+        }
+      }
+    }
+    setArtistSelectValue('');
+  };
+
+  const handleAddCustomArtist = () => {
+    const trimmed = customName.trim();
+    if (!trimmed) return;
+    const exists = selectedArtists.some(item => item.name.toLowerCase() === trimmed.toLowerCase());
+    if (!exists) {
+      setSelectedArtists(prev => [
+        ...prev,
+        {
+          id: `custom-${Date.now()}`,
+          name: trimmed,
+          type: 'custom',
+          parent_artist_id: artists[0]?.id || null
+        }
+      ]);
+    }
+    setCustomName('');
+    setShowCustomInput(false);
+  };
+
+  const handleRemoveArtist = (index) => {
+    setSelectedArtists(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleTrackChange = (index, field, value) => {
     setTracklist(prev => {
@@ -121,8 +260,13 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
 
     const resolvedId = (formData.id.trim() || ('rel-' + formData.title.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))).toLowerCase();
 
-    if (!resolvedId || !formData.title.trim() || !formData.artist_id) {
-      setError('ID, Judul Rilis, dan Artis pengisi wajib diisi.');
+    if (!resolvedId || !formData.title.trim()) {
+      setError('ID dan Judul Rilis wajib diisi.');
+      return;
+    }
+
+    if (selectedArtists.length === 0) {
+      setError('Pilih minimal 1 artis atau member pengisi rilis kolaborasi.');
       return;
     }
 
@@ -136,6 +280,13 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
         ? cleanedTracklist 
         : [{ title: formData.title.trim(), duration: '3:20' }];
 
+      // Determine parent artist IDs that actually exist in the `artists` table
+      const parentArtistIds = Array.from(new Set(
+        selectedArtists
+          .map(a => a.parent_artist_id || a.id)
+          .filter(id => id && artists.some(art => art.id.toLowerCase() === id.toLowerCase()))
+      ));
+
       const payload = {
         id: resolvedId,
         title: formData.title.trim(),
@@ -146,9 +297,11 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
         links: {
           ...(formData.spotify && { spotify: formData.spotify }),
           ...(formData.youtube && { youtube: formData.youtube }),
-          tracklist: finalTracklist
+          tracklist: finalTracklist,
+          artists: selectedArtists
         },
-        artist_id: formData.artist_id
+        artist_id: parentArtistIds[0] || (artists[0]?.id || ''),
+        parent_artist_ids: parentArtistIds
       };
 
       await onSave(payload, isEditing);
@@ -223,27 +376,113 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Performing Artist *
-              </label>
-              <select
-                required
-                name="artist_id"
-                value={formData.artist_id}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-black border border-white/20 focus:border-white text-white text-sm outline-none"
-              >
-                <option value="">-- Select Artist --</option>
-                {artists.map(a => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.category || a.type})
-                  </option>
-                ))}
-              </select>
+          {/* Performing Artists & Collaborators */}
+          <div className="space-y-3 p-4 bg-white/[0.02] border border-white/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-slate-400" />
+                <label className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                  Performing Artists & Collaborators *
+                </label>
+              </div>
+              <span className="text-[10px] text-slate-500 font-mono">
+                {selectedArtists.length} {selectedArtists.length === 1 ? 'Artist' : 'Artists'} Selected
+              </span>
             </div>
 
+            {/* Selected Artist Badges */}
+            <div className="flex flex-wrap gap-2 min-h-[46px] p-2.5 bg-black border border-white/20 items-center">
+              {selectedArtists.length === 0 ? (
+                <span className="text-xs text-slate-500 italic px-1">
+                  Belum ada artis yang dipilih. Pilih artis atau member di bawah.
+                </span>
+              ) : (
+                selectedArtists.map((art, idx) => (
+                  <div 
+                    key={art.id || idx}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 hover:border-white/50 text-white text-xs font-bold uppercase tracking-wider transition-all"
+                  >
+                    <span className="text-[11px] opacity-70">
+                      {art.type === 'member' ? '👤' : art.type === 'custom' ? '✨' : '👥'}
+                    </span>
+                    <span>{art.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveArtist(idx)}
+                      className="text-slate-400 hover:text-red-400 ml-1 p-0.5 transition-colors"
+                      title="Hapus artis ini"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Selection Dropdown & Custom Collab Button */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <select
+                value={artistSelectValue}
+                onChange={(e) => handleAddArtistFromSelect(e.target.value)}
+                className="flex-grow px-4 py-2.5 bg-black border border-white/20 hover:border-white/50 focus:border-white text-white text-xs font-bold uppercase tracking-widest outline-none cursor-pointer"
+              >
+                <option value="">+ Tambah Artis / Member Kolaborasi...</option>
+                
+                <optgroup label="── 👥 GRUP & SOLOIST ──">
+                  {artists.map(a => (
+                    <option key={a.id} value={`artist:${a.id}`}>
+                      {a.name} ({a.category || a.type || 'Artist'})
+                    </option>
+                  ))}
+                </optgroup>
+
+                <optgroup label="── 👤 MEMBER SATUAN (UNIT) ──">
+                  {allMemberOptions.map(m => (
+                    <option key={`m-${m.id}`} value={`member:${m.id}`}>
+                      {m.name} of {m.groupName}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+
+              <button
+                type="button"
+                onClick={() => setShowCustomInput(prev => !prev)}
+                className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-300 hover:text-white border border-white/20 hover:border-white transition-colors shrink-0 flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>{showCustomInput ? 'Batal Eksternal' : '+ Artis Luar'}</span>
+              </button>
+            </div>
+
+            {/* Custom External Artist Input */}
+            {showCustomInput && (
+              <div className="flex gap-2 p-3 bg-neutral-900 border border-white/20 mt-2">
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="Contoh: Virtual Guest Star, DJ Metaverse"
+                  className="flex-grow px-3 py-2 bg-black border border-white/20 text-white text-xs outline-none"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomArtist();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomArtist}
+                  className="px-4 py-2 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-slate-200 transition-colors"
+                >
+                  Tambah
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Release Type
@@ -262,20 +501,20 @@ export default function ReleaseModal({ isOpen, onClose, onSave, initialData, art
                 <option value="Special Release">Special Release</option>
               </select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Release Date *
-            </label>
-            <input
-              required
-              type="date"
-              name="release_date"
-              value={formData.release_date}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-black border border-white/20 focus:border-white text-white text-sm outline-none font-mono"
-            />
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Release Date *
+              </label>
+              <input
+                required
+                type="date"
+                name="release_date"
+                value={formData.release_date}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-black border border-white/20 focus:border-white text-white text-sm outline-none font-mono"
+              />
+            </div>
           </div>
 
           <ImageUploader

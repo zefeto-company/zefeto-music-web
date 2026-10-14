@@ -72,11 +72,18 @@ export default function AdminDashboard() {
         .order('created_at', { ascending: false });
 
       if (!rErr && rData) {
-        setReleases(rData.map(r => ({
-          ...r,
-          artists: r.release_artists?.map(ra => ra.artists).filter(Boolean) || [{ name: 'ZEFETO' }],
-          tracklist: r.links?.tracklist || r.tracklist || []
-        })));
+        setReleases(rData.map(r => {
+          const joinedArtists = r.release_artists?.map(ra => ra.artists).filter(Boolean) || [];
+          const collaborativeArtists = (r.links?.artists && Array.isArray(r.links.artists) && r.links.artists.length > 0)
+            ? r.links.artists
+            : (joinedArtists.length > 0 ? joinedArtists : [{ name: 'ZEFETO' }]);
+
+          return {
+            ...r,
+            artists: collaborativeArtists,
+            tracklist: r.links?.tracklist || r.tracklist || []
+          };
+        }));
       } else {
         setReleases(defaultReleases);
       }
@@ -188,7 +195,10 @@ export default function AdminDashboard() {
   // RELEASE CRUD HANDLERS
   // ==========================================
   const handleSaveRelease = async (payload, isEditing) => {
-    const { artist_id, ...releaseData } = payload;
+    const { artist_id, parent_artist_ids, ...releaseData } = payload;
+    const targetArtistIds = (parent_artist_ids && parent_artist_ids.length > 0)
+      ? parent_artist_ids
+      : (artist_id ? [artist_id] : []);
 
     if (isEditing) {
       const { error: rErr } = await supabase
@@ -206,13 +216,14 @@ export default function AdminDashboard() {
 
       if (rErr) throw rErr;
 
-      // Update release_artists junction
-      if (artist_id) {
-        await supabase.from('release_artists').delete().eq('release_id', releaseData.id);
-        await supabase.from('release_artists').insert([{
+      // Update release_artists junction for all involved artists
+      await supabase.from('release_artists').delete().eq('release_id', releaseData.id);
+      if (targetArtistIds.length > 0) {
+        const rows = targetArtistIds.map(aId => ({
           release_id: releaseData.id,
-          artist_id: artist_id
-        }]);
+          artist_id: aId
+        }));
+        await supabase.from('release_artists').insert(rows);
       }
 
       showToast(`Release "${releaseData.title}" updated.`);
@@ -223,12 +234,13 @@ export default function AdminDashboard() {
 
       if (rErr) throw rErr;
 
-      // Insert junction entry
-      if (artist_id) {
-        await supabase.from('release_artists').insert([{
+      // Insert junction entries for all involved artists
+      if (targetArtistIds.length > 0) {
+        const rows = targetArtistIds.map(aId => ({
           release_id: releaseData.id,
-          artist_id: artist_id
-        }]);
+          artist_id: aId
+        }));
+        await supabase.from('release_artists').insert(rows);
       }
 
       showToast(`Release "${releaseData.title}" published to catalog.`);
@@ -879,6 +891,7 @@ export default function AdminDashboard() {
         isOpen={releaseModal.isOpen}
         initialData={releaseModal.data}
         artists={artists}
+        members={members}
         onClose={() => setReleaseModal({ isOpen: false, data: null })}
         onSave={handleSaveRelease}
       />
